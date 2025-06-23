@@ -52,9 +52,7 @@ if st.button("Predict Dry Eye Disease Risk"):
         smoking_encoded = 1 if smoking == "Yes" else 0
         blue_light_encoded = 1 if blue_light_filter == "Yes" else 0
           # Create feature array in the exact order expected by the model
-        # Based on notebook: Gender, Age, Sleep Duration, Sleep Quality, Stress Level, 
-        # Blood pressure, Heart Rate, Daily Steps, Weight, Sleep Disorder, 
-        # Caffeine Consumption, Smoking, Average Screen Time, Blue-light Filter
+
         features = [
             gender_encoded,
             age,
@@ -79,7 +77,7 @@ if st.button("Predict Dry Eye Disease Risk"):
         
         input_df = pd.DataFrame([features], columns=feature_names)
         
-        # Debug: Show the input values
+        #  Show the input values
         st.write("Debug - Input values:")
         st.write(input_df)
         
