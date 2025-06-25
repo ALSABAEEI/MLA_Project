@@ -52,17 +52,3 @@ if submitted:
     else:
         st.success(f"🟢 No Dry Eye Detected.")
 
-    # Show extra info
-    st.markdown("---")
-    st.subheader("📌 Additional Information (Not Used in Prediction)")
-    st.markdown(f"""
-    - **Age:** {age}  
-    - **Heart Rate:** {heart_rate} bpm  
-    - **Sleep Duration:** {sleep_duration} hours  
-    - **Sleep Quality:** {sleep_quality}  
-    - **Stress Level:** {stress_level}  
-    - **Blood Pressure:** {blood_pressure}  
-    - **Daily Steps:** {daily_steps}  
-    - **Weight:** {weight} kg  
-    - **Smoking:** {smoking}
-    """)
