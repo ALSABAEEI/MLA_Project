@@ -1,100 +1,68 @@
 import streamlit as st
-import pandas as pd
 import joblib
+import pandas as pd
 
-# Load the trained model (no scaler needed)
-model = joblib.load('logistic_model_top5.pkl')
-features = joblib.load('logistic_model_top5_features.pkl')
+# Load trained Logistic Regression model
+model = joblib.load("logistic_model_top5.pkl")
+features = ['Gender', 'Sleep disorder', 'Caffeine consumption', 'Average screen time', 'Blue-light filter']
 
-# App title and description
-st.title("Dry Eye Disease Prediction App")
-st.write("Enter your health information to predict dry eye disease risk")
+# App Title
+st.set_page_config(page_title="Dry Eye Detection", layout="centered")
+st.title("👁 Dry Eye Disease Detection")
+st.write("This system uses a trained Logistic Regression model to predict the possibility of Dry Eye Disease based on lifestyle and screen habits.")
 
-# Create two columns for input
-col1, col2 = st.columns(2)
+st.markdown("---")
 
-# Column 1: Personal Information
-with col1:
-    st.subheader("Personal Information")
-    gender = st.selectbox("Gender", ["M", "F"])
-    age = st.number_input("Age", min_value=18, max_value=100, value=30)
+# Input Form
+with st.form("input_form"):
+    st.subheader("📋 Basic & Lifestyle Information")
 
-with col2:
-    st.subheader("Lifestyle & Health")
-    sleep_duration = st.number_input("Sleep Duration (hrs)", min_value=1.0, max_value=12.0, value=7.0)
-    sleep_quality = st.slider("Sleep Quality (1-5)", min_value=1, max_value=5, value=4)
-    stress_level = st.slider("Stress Level (1-10)", min_value=1, max_value=10, value=5)
+    
+    age = st.number_input("🎂 Age", min_value=10, max_value=100, value=25)
+    heart_rate = st.slider("❤️ Heart Rate (bpm)", 40, 120, 75)
+    sleep_duration = st.slider("🛏️ Sleep Duration (hours)", 0.0, 12.0, step=0.5, value=6.0)
+    sleep_quality = st.selectbox("😴 Sleep Quality", ['Poor', 'Fair', 'Good'])
+    stress_level = st.slider("😣 Stress Level (1=Low, 10=High)", 1, 10, 5)
+    blood_pressure = st.selectbox("🩸 Blood Pressure", ['Low', 'Normal', 'High'])
+    daily_steps = st.number_input("🚶 Daily Steps", min_value=0, max_value=50000, value=5000)
+    weight = st.number_input("⚖️ Weight (kg)", min_value=20.0, max_value=200.0, step=0.5, value=65.0)
+    smoking = st.selectbox("🚬 Do you smoke?", ['No', 'Yes'])
 
-# Additional health metrics
-st.subheader("Health Metrics")
-col3, col4 = st.columns(2)
+    st.markdown("### ✅ Most important and effective information")
+    gender = st.selectbox("👤 Gender", [1, 2], format_func=lambda x: "Male" if x == 1 else "Female")
+    sleep_disorder = st.selectbox("🛌 Sleep Disorder", [0, 1], format_func=lambda x: "No" if x == 0 else "Yes")
+    caffeine = st.selectbox("☕ Caffeine Consumption", [0, 1], format_func=lambda x: "No" if x == 0 else "Yes")
+    screen_time = st.slider("📱 Average Screen Time (hours/day)", 0.0, 24.0, step=0.5, value=6.0)
+    blue_light = st.selectbox("🔵 Blue-Light Filter Used?", [0, 1], format_func=lambda x: "No" if x == 0 else "Yes")
 
-with col3:
-    heart_rate = st.number_input("Heart Rate (bpm)", min_value=40, max_value=150, value=70)
-    daily_steps = st.number_input("Daily Steps", min_value=0, max_value=30000, value=8000)
-    weight = st.number_input("Weight (kg)", min_value=30, max_value=200, value=70)
+    submitted = st.form_submit_button("🔍 Predict")
 
-with col4:
-    sleep_disorder = st.selectbox("Sleep Disorder", ["Yes", "No"])
-    caffeine_consumption = st.selectbox("Caffeine Consumption", ["Yes", "No"])
-    smoking = st.selectbox("Smoking", ["Yes", "No"])
-    blue_light_filter = st.selectbox("Blue-light Filter", ["Yes", "No"])
+# Prediction Logic
+if submitted:
+    # Prepare input for model prediction
+    user_data = pd.DataFrame([[gender, sleep_disorder, caffeine, screen_time, blue_light]], columns=features)
+    prediction = model.predict(user_data)[0]
+    probability = model.predict_proba(user_data)[0][prediction]
 
-# Screen time
-screen_time = st.slider("Average Screen Time (hrs/day)", min_value=0.0, max_value=16.0, value=6.0)
+    # Show result
+    st.markdown("---")
+    st.subheader("📊 Prediction Result")
+    if prediction == 1:
+        st.error(f"🔴 Risk Detected: You have Dry Eye Disease.")
+    else:
+        st.success(f"🟢 No Dry Eye Detected.")
 
-# Prediction button
-if st.button("Predict Dry Eye Disease Risk"):
-    try:
-        # Prepare input data - encode categorical variables
-        gender_encoded = 1 if gender == "M" else 2  # M=1, F=2
-        sleep_disorder_encoded = 1 if sleep_disorder == "Yes" else 0
-        caffeine_encoded = 1 if caffeine_consumption == "Yes" else 0
-        smoking_encoded = 1 if smoking == "Yes" else 0
-        blue_light_encoded = 1 if blue_light_filter == "Yes" else 0
-          # Create feature array in the exact order expected by the model
-
-        features = [
-            gender_encoded,
-            age,
-            sleep_duration,
-            sleep_quality,
-            stress_level,
-            heart_rate,
-            daily_steps,
-            weight,
-            sleep_disorder_encoded,
-            caffeine_encoded,
-            smoking_encoded,
-            screen_time,
-            blue_light_encoded
-        ]
-          # Convert to DataFrame for prediction
-        feature_names = [
-            'Gender', 'Age', 'Sleep duration', 'Sleep quality', 'Stress level',
-            'Heart rate', 'Daily steps', 'Weight', 'Sleep disorder',
-            'Caffeine consumption', 'Smoking', 'Average screen time', 'Blue-light filter'
-        ]
-        
-        input_df = pd.DataFrame([features], columns=feature_names)
-        
-        #  Show the input values
-        st.write("Debug - Input values:")
-        st.write(input_df)
-        
-        # Make prediction
-        prediction = model.predict(input_df)[0]
-        prediction_proba = model.predict_proba(input_df)[0]
-        
-        # Display results
-        st.subheader("Prediction Results")
-        if prediction == 1:
-            st.error("⚠️ Dry Eye Disease")
-        else:
-            st.success("✅ No Dry Eye Disease")
-        
-
-        
-    except Exception as e:
-        st.error(f"Error making prediction: {str(e)}")
-        st.write("Please check that the model file exists and was trained with the correct features.")
+    # Show extra info
+    st.markdown("---")
+    st.subheader("📌 Additional Information (Not Used in Prediction)")
+    st.markdown(f"""
+    - **Age:** {age}  
+    - **Heart Rate:** {heart_rate} bpm  
+    - **Sleep Duration:** {sleep_duration} hours  
+    - **Sleep Quality:** {sleep_quality}  
+    - **Stress Level:** {stress_level}  
+    - **Blood Pressure:** {blood_pressure}  
+    - **Daily Steps:** {daily_steps}  
+    - **Weight:** {weight} kg  
+    - **Smoking:** {smoking}
+    """)
