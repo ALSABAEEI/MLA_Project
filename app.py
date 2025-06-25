@@ -3,7 +3,8 @@ import pandas as pd
 import joblib
 
 # Load the trained model (no scaler needed)
-model = joblib.load('logistic_model.pkl')
+model = joblib.load('logistic_model_top5.pkl')
+features = joblib.load('logistic_model_top5_features.pkl')
 
 # App title and description
 st.title("Dry Eye Disease Prediction App")
